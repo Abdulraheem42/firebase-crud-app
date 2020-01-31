@@ -2,134 +2,132 @@ import React, {Component} from 'react';
 import {Container, Grid, TextField, Button, Typography} from "@material-ui/core";
 import {withStyles} from "@material-ui/core";
 import {useStyles} from "../../Material-ui-style";
-import firebase,{db} from "../../config/firebaseConfige";
+import firebase,{firestore} from "../../config/firebaseConfige";
 
 
 class SignUpForm extends Component{
     constructor(props){
         super(props);
         this.state = ({
-            fName: '',
-            lName: '',
+            firstName: '',
+            lastName: '',
             email: '',
-            password: ''
+            password: '',
+            error: '',
+            preLoader: false
         })
     }
 
     handleChange(event){
         this.setState({
-            [event.target.name]: event.target.value
+            [event.target.name]: event.target.value,
+            error: null
         })
     }
 
     handleSubmit(event){
         event.preventDefault();
-        const {email, password, fName, lName} = this.state;
+        const {email, password, firstName, lastName} = this.state;
 
         firebase.auth().createUserWithEmailAndPassword(email, password)
             .then( async (res) => {
-                console.log(res, 'res')
-                db.collection("users")
+                firestore.collection("users")
                     .doc(res.user.uid)
                     .set({
-                        firstName: fName,
-                        lastName: lName,
+                        firstName: firstName,
+                        lastName: lastName,
                         email: email,
-                        initials: fName[0] + lName[0]
+                        initials: firstName[0] + lastName[0]
                     });
 
                 this.props.history.push('/dashboard');
             })
             .catch(err => {
-                console.log(err, 'err-=-=-=-')
+                this.setState({
+                    error: err.message,
+                    preLoader: false
+                });
             });
 
         this.setState({
-            fName: '',
-            lName: '',
+            firstName: '',
+            lastName: '',
             email: '',
-            password: ''
+            password: '',
+            preLoader: true
         })
     }
     render() {
         console.log(this.state)
+        const { error, preLoader } = this.state
         const {classes} = this.props
         return(
             <div>
-                <Container maxWidth="xs">
-                    <Typography className={classes.varient} variant="h3" component="h3">
-                        SignUp
-                    </Typography>
-                    <form onSubmit={this.handleSubmit.bind(this)}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="First Name"
-                                    onChange={this.handleChange.bind(this)}
-                                    value={this.state.fName}
-                                    type="Text"
-                                    required
-                                    fullWidth
-                                    name='fName'
-                                    margin="normal"
-                                    variant="outlined"/>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    id="outlined-username-input"
-                                    label="Last Name"
-                                    onChange={this.handleChange.bind(this)}
-                                    value={this.state.lName}
-                                    type="Text"
-                                    fullWidth
-                                    required
-                                    name='lName'
-                                    margin="normal"
-                                    variant="outlined"
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    id="outlined-email-input"
-                                    label="Email Address"
-                                    onChange={this.handleChange.bind(this)}
-                                    type="email"
-                                    name="email"
-                                    autoComplete="email"
-                                    value={this.state.email}
-                                    margin="normal"
-                                    fullWidth
-                                    required
-                                    variant="outlined"
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    id="outlined-password-input"
-                                    onChange={this.handleChange.bind(this)}
-                                    label="Password"
-                                    type="password"
-                                    value={this.state.password}
-                                    fullWidth
-                                    required
-                                    name="password"
-                                    autoComplete="current-password"
-                                    margin="normal"
-                                    variant="outlined"
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    variant="contained"
-                                    color="primary"
-                                >
-                                    Sign Up
-                                </Button>
-                            </Grid>
-                        </Grid>
+                <Container maxWidth="md">
+                    <form action="" onSubmit={this.handleSubmit.bind(this)}  className='white'>
+                        <h2 className="text-grey center">Sign Up</h2>
+                        <div className='row'>
+                            <div className='col l6 m6 input-field'>
+                                <label htmlFor="firstName">First Name</label>
+                                <input type="text"
+                                       required
+                                       value={this.state.firstName}
+                                       name='firstName'
+                                       id='firstName'
+                                       onChange={this.handleChange.bind(this)}/>
+                            </div>
+                            <div className='col l6 m6 input-field'>
+                                <label htmlFor="lastName">Last Name</label>
+                                <input type="text"
+                                       required
+                                       value={this.state.lastName}
+                                       name='lastName'
+                                       id='lastName'
+                                       onChange={this.handleChange.bind(this)}/>
+                            </div>
+                            <div className='col l12 m12 s12 input-field'>
+                                <label htmlFor="Email">Email</label>
+                                <input type="email"
+                                       required
+                                       value={this.state.email}
+                                       name='email'
+                                       id='email'
+                                       onChange={this.handleChange.bind(this)}/>
+                            </div>
+                            <div className='col l12 m12 s12 input-field'>
+                                <label htmlFor="password">Password</label>
+                                <input type="password"
+                                       required
+                                       value={this.state.password}
+                                       name='password'
+                                       id='password'
+                                       onChange={this.handleChange.bind(this)}/>
+                            </div>
+                            <div className='col l12 m12 s12 center'>
+                                <button type='submit' className='btn btn-large blue lighten-1 z-depth-2'>
+                                    SignUp
+                                </button>
+                            </div>
+
+                        </div>
                     </form>
+                    <div>
+                        {preLoader ?
+                            <div className="progress">
+                                <div className="indeterminate"></div>
+                            </div>
+                            : null
+                        }
+                    </div>
+                    <div className='red-text center validation_error' >
+                        {error ?
+                            <div>
+                                <i className="material-icons small" >warning</i>
+                                {error}
+                            </div>
+                            : null
+                        }
+                    </div>
                 </Container>
             </div>
         )

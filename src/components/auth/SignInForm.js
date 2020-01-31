@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Container, TextField, Typography, Grid, Button} from '@material-ui/core';
+import 'materialize-css/dist/css/materialize.min.css';
 import firebase from '../../config/firebaseConfige';
 import { Link } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
@@ -11,13 +11,15 @@ class SignInForm extends Component{
         this.state = ({
             email: '',
             password: '',
-            error: null
+            error: null,
+            preLoader: false
         })
     }
 
     handleChange(event){
         this.setState({
-            [event.target.name] : event.target.value
+            [event.target.name] : event.target.value,
+            error: null
         })
     }
 
@@ -27,79 +29,74 @@ class SignInForm extends Component{
         firebase.auth()
             .signInWithEmailAndPassword(email, password)
             .then((res)=> {
-                console.log('SignIn Successfully')
                 this.props.history.push('/dashboard')
             })
             .catch((error) => {
                 this.setState({
-                    error: error
+                    error: error.message,
+                    preLoader: false
                 });
-                console.log('Some thing Wrong!')
             });
 
         this.setState({
             email: '',
             password: '',
-            error: ''
+            preLoader: true
         })
     }
 
     render(){
-        const {classes} = this.props;
-        const {email, password, error} = this.state;
+        const {email, password, preLoader, error} = this.state;
         return(
             <div>
-                <Container maxWidth='xs'>
-                    <Typography className={classes.varient} variant="h3" component="h3">
-                        SignIn
-                    </Typography>
-                    <form onSubmit={this.handleSubmit.bind(this)}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <TextField type="email"
-                                           name='email'
-                                           id='outlined-email-input'
-                                           fullWidth
-                                           required
-                                           margin="normal"
-                                           variant="outlined"
-                                           label='Email'
-                                           value={email}
-                                           onChange={this.handleChange.bind(this)}
-                                           placeholder='Email'/>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField type="password"
-                                           name='password'
-                                           variant="outlined"
-                                           fullWidth
-                                           margin="normal"
-                                           required
-                                           label="Password"
-                                           value={password}
-                                           onChange={this.handleChange.bind(this)}
-                                           placeholder='Password'/>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Button type="submit"
-                                        value="SignIn"
-                                        variant="contained"
-                                        color="primary"
-                                        fullWidth
-                                        margin="normal"
-                                >
-                                    Sign in
-                                </Button>
-                            </Grid>
-                            <Grid>
-                                <Link to='/signup' style={{color: 'red'}}>Don't have an account?</Link>
-                            </Grid>
-                            <Grid item xs={12}>
-                                {error ? <div style={{color:'red'}}>Some thing Wrong!</div> : null}
-                            </Grid>
-                        </Grid>
+                <div className='container'>
+                    <form className='white' action="" onSubmit={this.handleSubmit.bind(this)}>
+                        <h2 className="darken-text-3 center">Sign In</h2>
+                        <div className='row'>
+                            <div className='col l12 m12 s12 input-field'>
+                                <label htmlFor="email">Email</label>
+                                <input type="email"
+                                       value={email}
+                                       id='email'
+                                       name='email'
+                                       required
+                                       onChange={this.handleChange.bind(this)} />
+                            </div>
+                            <div className='col l12 m12 s12 input-field'>
+                                <label htmlFor="password">Password</label>
+                                <input type="password"
+                                       value={password}
+                                       id='password'
+                                       name='password'
+                                       required
+                                       onChange={this.handleChange.bind(this)} />
+                            </div>
+                            <div className='col l12 m12 s12 input-field center'>
+                                <button type='submit' className='btn blue btn-large lighten-1 z-depth-2'>
+                                    SignIn
+                                </button>
+                            </div>
+                        </div>
+
                     </form>
-                </Container>
+                    <div>
+                        {preLoader ?
+                            <div className="progress">
+                                <div className="indeterminate"></div>
+                            </div>
+                            : null
+                        }
+                    </div>
+                    <div className='red-text center validation_error' >
+                        {error ?
+                            <div>
+                                <i className="material-icons small" >warning</i>
+                                {error}
+                            </div>
+                            : null
+                        }
+                    </div>
+                </div>
             </div>
         )
     }
